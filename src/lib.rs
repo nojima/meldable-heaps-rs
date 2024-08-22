@@ -67,7 +67,7 @@ impl<T: Ord> Drop for SkewHeap<T> {
 
         loop {
             while let Some(mut node) = opt_node {
-                let left = node.left.take();
+                let left = node.left;
 
                 // push node to the stack
                 node.left = stack_top;
