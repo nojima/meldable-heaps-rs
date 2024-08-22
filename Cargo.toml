@@ -5,6 +5,7 @@ edition = "2021"
 
 [dev-dependencies]
 divan = "0.1.14"
+mimalloc = "0.1.43"
 rand = "0.8.5"
 
 [[bench]]
