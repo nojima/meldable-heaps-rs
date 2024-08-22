@@ -54,9 +54,40 @@ impl<T: Ord> SkewHeap<T> {
     }
 }
 
+// We need to implement `drop` for SkewHeap because auto-generated `drop` would cause stack overflow
+// (the depth of the tree can be O(n) in the worst case).
 impl<T: Ord> Drop for SkewHeap<T> {
-    // We need to implement `drop` for SkewHeap because auto-generated `drop` would cause stack overflow
-    // (the depth of the tree can be O(n) in the worst case).
+    // Visit all nodes in depth-first order, and drop them one-by-one.
+    //
+    // This implementation reuses heap nodes to create a stack structure.
+    // Therefore, it consumes only O(1) memory except for the heap itself.
+    fn drop(&mut self) {
+        let mut stack_top = None;
+        let mut opt_node = self.root.take();
+
+        loop {
+            while let Some(mut node) = opt_node {
+                let left = node.left.take();
+
+                // push node to the stack
+                node.left = stack_top;
+                stack_top = Some(node);
+
+                // move to the left child
+                opt_node = left;
+            }
+
+            // pop a node from the stack
+            let Some(top) = stack_top else { break };
+            stack_top = top.left;
+            opt_node = top.right;
+
+            // `top` is deallocated here
+        }
+    }
+
+    /*
+    // Naive implementation
     fn drop(&mut self) {
         let Some(root) = self.root.take() else { return };
         let mut stack = vec![root];
@@ -70,6 +101,8 @@ impl<T: Ord> Drop for SkewHeap<T> {
             drop(node);
         }
     }
+    */
+
 }
 
 struct Node<T: Ord> {
@@ -170,6 +203,25 @@ mod tests {
         }
         let expected = vec![1, 1, 2, 3, 3, 4, 5, 5, 5, 6, 7, 8, 9, 9, 9];
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn drop_test() {
+        let mut heap = SkewHeap::new();
+        for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
+            heap.push(x);
+        }
+        drop(heap);
+    }
+
+    #[test]
+    fn large_drop_test() {
+        let n = 1000000;
+        let mut heap = SkewHeap::new();
+        for i in 0..n {
+            heap.push(n - i);
+        }
+        drop(heap);
     }
 
     #[test]
