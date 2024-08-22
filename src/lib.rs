@@ -39,8 +39,8 @@ impl<T: Ord> SkewHeap<T> {
 
     /// Melds two heaps into a single heap.
     /// O(log n) amortized time.
-    pub fn meld(heap1: SkewHeap<T>, heap2: SkewHeap<T>) -> SkewHeap<T> {
-        let root = Node::meld(heap1.root, heap2.root);
+    pub fn meld(mut heap1: SkewHeap<T>, mut heap2: SkewHeap<T>) -> SkewHeap<T> {
+        let root = Node::meld(heap1.root.take(), heap2.root.take());
         Self { root }
     }
 
@@ -51,6 +51,24 @@ impl<T: Ord> SkewHeap<T> {
             stack.push(root.as_ref());
         }
         Iter { stack }
+    }
+}
+
+impl<T: Ord> Drop for SkewHeap<T> {
+    // We need to implement `drop` for SkewHeap because auto-generated `drop` would cause stack overflow
+    // (the depth of the tree can be O(n) in the worst case).
+    fn drop(&mut self) {
+        let Some(root) = self.root.take() else { return };
+        let mut stack = vec![root];
+        while let Some(mut node) = stack.pop() {
+            if let Some(left) = node.left.take() {
+                stack.push(left);
+            }
+            if let Some(right) = node.right.take() {
+                stack.push(right);
+            }
+            drop(node);
+        }
     }
 }
 
