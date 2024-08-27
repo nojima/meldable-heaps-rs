@@ -1,8 +1,8 @@
 use std::collections::BinaryHeap;
 
 use divan::Bencher;
-use mimalloc::MiMalloc;
 use meldable_heaps::{ParingHeap, SkewHeap};
+use mimalloc::MiMalloc;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -18,60 +18,29 @@ trait Heap<T: Ord> {
     fn is_empty(&self) -> bool;
 }
 
+#[rustfmt::skip]
 impl<T: Ord> Heap<T> for BinaryHeap<T> {
-    fn new() -> Self {
-        Self::new()
-    }
-
-    fn push(&mut self, value: T) {
-        self.push(value);
-    }
-
-    fn pop(&mut self) -> Option<T> {
-        self.pop()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.is_empty()
-    }
+    fn new() -> Self { Self::new() }
+    fn push(&mut self, value: T) { self.push(value) }
+    fn pop(&mut self) -> Option<T> { self.pop() }
+    fn is_empty(&self) -> bool { self.is_empty() }
 }
 
-impl<T: Ord> Heap<T> for SkewHeap<T> {
-    fn new() -> Self {
-        Self::new()
-    }
-
-    fn push(&mut self, value: T) {
-        self.push(value);
-    }
-
-    fn pop(&mut self) -> Option<T> {
-        self.pop()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.is_empty()
-    }
-}
-
+#[rustfmt::skip]
 impl<T: Ord> Heap<T> for ParingHeap<T> {
-    fn new() -> Self {
-        Self::new()
-    }
-
-    fn push(&mut self, value: T) {
-        self.push(value);
-    }
-
-    fn pop(&mut self) -> Option<T> {
-        self.pop()
-    }
-
-    fn is_empty(&self) -> bool {
-        self.is_empty()
-    }
+    fn new() -> Self { Self::new() }
+    fn push(&mut self, value: T) { self.push(value) }
+    fn pop(&mut self) -> Option<T> { self.pop() }
+    fn is_empty(&self) -> bool { self.is_empty() }
 }
 
+#[rustfmt::skip]
+impl<T: Ord> Heap<T> for SkewHeap<T> {
+    fn new() -> Self { Self::new() }
+    fn push(&mut self, value: T) { self.push(value) }
+    fn pop(&mut self) -> Option<T> { self.pop() }
+    fn is_empty(&self) -> bool { self.is_empty() }
+}
 
 type Entry = [u64; 5];
 
