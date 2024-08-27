@@ -1,3 +1,10 @@
+#![no_std]
+#![forbid(unsafe_code)]
+
+extern crate alloc;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+
 /// `SkewHeap` is a priority queue implemented with skew heaps.
 /// `SkewHeap` is a **min-heap**, which means that the minimum element is popped first.
 pub struct SkewHeap<T: Ord> {
@@ -102,7 +109,6 @@ impl<T: Ord> Drop for SkewHeap<T> {
         }
     }
     */
-
 }
 
 struct Node<T: Ord> {
@@ -131,11 +137,11 @@ impl<T: Ord> Node<T> {
 
         // Ensure root1 <= root2
         if root1.value > root2.value {
-            std::mem::swap(&mut root1, &mut root2);
+            core::mem::swap(&mut root1, &mut root2);
         }
 
         // Skew root
-        std::mem::swap(&mut root1.left, &mut root1.right);
+        core::mem::swap(&mut root1.left, &mut root1.right);
 
         // Setup loop variables
         let mut parent = &mut root1;
@@ -145,11 +151,11 @@ impl<T: Ord> Node<T> {
         while let Some(mut node1) = opt_node1 {
             // Ensure node1 <= node2
             if node1.value > node2.value {
-                std::mem::swap(&mut node1, &mut node2);
+                core::mem::swap(&mut node1, &mut node2);
             }
 
             // Skew `node1`
-            std::mem::swap(&mut node1.left, &mut node1.right);
+            core::mem::swap(&mut node1.left, &mut node1.right);
 
             // Make `node1` the left child of `parent`
             parent.left = Some(node1);
@@ -186,9 +192,11 @@ impl<'a, T: Ord> Iterator for Iter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use std::{cmp::Reverse, collections::BinaryHeap};
-
     use crate::SkewHeap;
+    use alloc::collections::BinaryHeap;
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use core::cmp::Reverse;
 
     #[test]
     fn basic_test() {
