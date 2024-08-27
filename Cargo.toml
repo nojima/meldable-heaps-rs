@@ -1,5 +1,5 @@
 [package]
-name = "skew_heap"
+name = "meldable_heaps"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,5 +9,5 @@ mimalloc = "0.1.43"
 rand = "0.8.5"
 
 [[bench]]
-name = "skew_heap"
+name = "push_pop"
 harness = false

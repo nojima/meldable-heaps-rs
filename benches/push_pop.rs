@@ -2,7 +2,7 @@ use std::collections::BinaryHeap;
 
 use divan::Bencher;
 use mimalloc::MiMalloc;
-use skew_heap::SkewHeap;
+use meldable_heaps::SkewHeap;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -36,9 +36,9 @@ impl<T: Ord> Heap<T> for BinaryHeap<T> {
     }
 }
 
-impl<T: Ord> Heap<T> for skew_heap::SkewHeap<T> {
+impl<T: Ord> Heap<T> for SkewHeap<T> {
     fn new() -> Self {
-        skew_heap::SkewHeap::new()
+        SkewHeap::new()
     }
 
     fn push(&mut self, value: T) {
