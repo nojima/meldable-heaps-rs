@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-use alloc::{boxed::Box, vec, vec::Vec};
+use alloc::{boxed::Box, vec::Vec};
 
 pub struct ParingHeap<T: Ord> {
     root: Option<Box<Node<T>>>,
@@ -47,6 +47,36 @@ impl<T: Ord> ParingHeap<T> {
 // We need to implement `drop` for ParingHeap because auto-generated `drop` would cause stack overflow
 // (the depth of the tree can be O(n) in the worst case).
 impl<T: Ord> Drop for ParingHeap<T> {
+    // Visit all nodes in depth-first order, and drop them one-by-one.
+    //
+    // This implementation reuses heap nodes to create a stack structure.
+    // Therefore, it consumes only O(1) memory except for the heap itself.
+    fn drop(&mut self) {
+        let mut stack_top = None;
+        let mut it = self.root.take();
+
+        loop {
+            while let Some(mut node) = it {
+                let next_sibling = node.next_sibling;
+
+                // push node to the stack
+                node.next_sibling = stack_top;
+                stack_top = Some(node);
+
+                // move to the next sibling
+                it = next_sibling;
+            }
+
+            // pop a node from the stack
+            let Some(top) = stack_top else { break };
+            stack_top = top.next_sibling;
+            it = top.first_child;
+
+            // `top` is deallocated here
+        }
+    }
+
+    /*
     fn drop(&mut self) {
         let Some(root) = self.root.take() else { return };
         let mut stack = vec![root];
@@ -59,6 +89,7 @@ impl<T: Ord> Drop for ParingHeap<T> {
             drop(node);
         }
     }
+    */
 }
 
 struct Node<T: Ord> {
