@@ -1,7 +1,8 @@
-use divan::Bencher;
-use skew_heap::SkewHeap;
 use std::collections::BinaryHeap;
+
+use divan::Bencher;
 use mimalloc::MiMalloc;
+use skew_heap::SkewHeap;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;

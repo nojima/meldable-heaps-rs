@@ -192,11 +192,12 @@ impl<'a, T: Ord> Iterator for Iter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::SkewHeap;
     use alloc::collections::BinaryHeap;
     use alloc::vec;
     use alloc::vec::Vec;
     use core::cmp::Reverse;
+
+    use crate::SkewHeap;
 
     #[test]
     fn basic_test() {
