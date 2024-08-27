@@ -216,7 +216,6 @@ mod tests {
         drop(heap);
     }
 
-
     #[test]
     fn iter_test() {
         let mut heap = ParingHeap::new();
