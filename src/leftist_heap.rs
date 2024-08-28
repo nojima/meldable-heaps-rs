@@ -1,19 +1,16 @@
-#![forbid(unsafe_code)]
+use core::cmp::min;
 
-use alloc::boxed::Box;
-use alloc::vec::Vec;
+use alloc::{boxed::Box, vec::Vec};
 
-/// `SkewHeap` is a priority queue implemented with skew heaps.
-/// `SkewHeap` is a **min-heap**, which means that the minimum element is popped first.
-pub struct SkewHeap<T: Ord> {
+pub struct LeftistHeap<T: Ord> {
     root: Option<Box<Node<T>>>,
 }
 
-impl<T: Ord> SkewHeap<T> {
-    /// Constructs a empty `SkewHeap`.
+impl<T: Ord> LeftistHeap<T> {
+    /// Constructs a empty `LeftistHeap`.
     /// O(1) time.
     pub fn new() -> Self {
-        SkewHeap { root: None }
+        Self { root: None }
     }
 
     /// Returns the number of elements in the heap.
@@ -23,13 +20,13 @@ impl<T: Ord> SkewHeap<T> {
     }
 
     /// Inserts a value into the heap.
-    /// O(log n) amortized time.
+    /// O(log n) time.
     pub fn push(&mut self, value: T) {
         self.root = Node::meld(self.root.take(), Node::singleton(value));
     }
 
     /// Removes the minimum element from the heap and returns it, or `None` if it is empty.
-    /// O(log n) amortized time.
+    /// O(log n) time.
     pub fn pop(&mut self) -> Option<T> {
         let root = self.root.take()?;
         self.root = Node::meld(root.left, root.right);
@@ -43,8 +40,8 @@ impl<T: Ord> SkewHeap<T> {
     }
 
     /// Melds two heaps into a single heap.
-    /// O(log n) amortized time.
-    pub fn meld(mut heap1: SkewHeap<T>, mut heap2: SkewHeap<T>) -> SkewHeap<T> {
+    /// O(log n) time.
+    pub fn meld(mut heap1: LeftistHeap<T>, mut heap2: LeftistHeap<T>) -> LeftistHeap<T> {
         let root = Node::meld(heap1.root.take(), heap2.root.take());
         Self { root }
     }
@@ -59,9 +56,9 @@ impl<T: Ord> SkewHeap<T> {
     }
 }
 
-// We need to implement `drop` for SkewHeap because auto-generated `drop` would cause stack overflow
+// We need to implement `drop` for LeftistHeap because auto-generated `drop` would cause stack overflow
 // (the depth of the tree can be O(n) in the worst case).
-impl<T: Ord> Drop for SkewHeap<T> {
+impl<T: Ord> Drop for LeftistHeap<T> {
     // Visit all nodes in depth-first order, and drop them one-by-one.
     //
     // This implementation reuses heap nodes to create a stack structure.
@@ -90,27 +87,11 @@ impl<T: Ord> Drop for SkewHeap<T> {
             // `top` is deallocated here
         }
     }
-
-    /*
-    // Naive implementation
-    fn drop(&mut self) {
-        let Some(root) = self.root.take() else { return };
-        let mut stack = vec![root];
-        while let Some(mut node) = stack.pop() {
-            if let Some(left) = node.left.take() {
-                stack.push(left);
-            }
-            if let Some(right) = node.right.take() {
-                stack.push(right);
-            }
-            drop(node);
-        }
-    }
-    */
 }
 
 struct Node<T: Ord> {
     value: T,
+    rank: u8,
     left: Option<Box<Node<T>>>,
     right: Option<Box<Node<T>>>,
 }
@@ -119,53 +100,82 @@ impl<T: Ord> Node<T> {
     fn singleton(value: T) -> Option<Box<Node<T>>> {
         Some(Box::new(Self {
             value,
+            rank: 1,
             left: None,
             right: None,
         }))
     }
 
-    // `meld` implements `imeld` function from Sleator and Tarjan's paper:
-    // https://www.cs.cmu.edu/~sleator/papers/Adjusting-Heaps.htm
-    fn meld(root1: Option<Box<Node<T>>>, root2: Option<Box<Node<T>>>) -> Option<Box<Node<T>>> {
+    /*
+    fn rmeld(root1: Option<Box<Node<T>>>, root2: Option<Box<Node<T>>>) -> Option<Box<Node<T>>> {
         let (mut root1, mut root2) = match (root1, root2) {
             (None, root2) => return root2,
             (root1, None) => return root1,
             (Some(r1), Some(r2)) => (r1, r2),
         };
 
-        // Ensure root1 <= root2
         if root1.value > root2.value {
             core::mem::swap(&mut root1, &mut root2);
         }
 
-        // Skew root
-        core::mem::swap(&mut root1.left, &mut root1.right);
+        root1.right = Self::rmeld(root1.right, Some(root2));
 
-        // Setup loop variables
-        let mut parent = &mut root1;
-        let mut node1_opt = parent.left.take();
+        let rank_l = root1.left.as_ref().map_or(0, |node| node.rank);
+        let rank_r = root1.right.as_ref().map_or(0, |node| node.rank);
+        if rank_l < rank_r {
+            core::mem::swap(&mut root1.left, &mut root1.right);
+        }
+
+        root1.rank = min(rank_l, rank_r) + 1;
+        Some(root1)
+    }
+    */
+
+    fn meld(root1: Option<Box<Node<T>>>, root2: Option<Box<Node<T>>>) -> Option<Box<Node<T>>> {
+        // Make `child` a child of `parent` and return a mutable reference to `child`.
+        fn meld_one<T: Ord>(parent: &mut Node<T>, child: Box<Node<T>>) -> &mut Box<Node<T>> {
+            let rank_r = child.rank;
+            let rank_l = parent.left.as_ref().map_or(0, |node| node.rank);
+
+            debug_assert!(parent.right.is_none());
+            parent.right = Some(child);
+            parent.rank = min(rank_l, rank_r) + 1;
+
+            // maintain leftist property
+            if rank_l < rank_r {
+                core::mem::swap(&mut parent.left, &mut parent.right);
+                parent.left.as_mut().unwrap()
+            } else {
+                parent.right.as_mut().unwrap()
+            }
+        }
+
+        let (mut root1, mut root2) = match (root1, root2) {
+            (None, root2) => return root2,
+            (root1, None) => return root1,
+            (Some(r1), Some(r2)) => (r1, r2),
+        };
+
+        if root1.value > root2.value {
+            core::mem::swap(&mut root1, &mut root2);
+        }
+        let mut new_root = root1;
+
+        // initialize loop variables
+        let mut parent = &mut new_root;
+        let mut node1_opt = parent.right.take();
         let mut node2 = root2;
 
         while let Some(mut node1) = node1_opt {
-            // Ensure node1 <= node2
             if node1.value > node2.value {
                 core::mem::swap(&mut node1, &mut node2);
             }
-
-            // Skew `node1`
-            core::mem::swap(&mut node1.left, &mut node1.right);
-
-            // Make `node1` the left child of `parent`
-            parent.left = Some(node1);
-
-            // Update loop variables
-            parent = parent.left.as_mut().unwrap();
-            node1_opt = parent.left.take();
+            parent = meld_one(parent, node1);
+            node1_opt = parent.right.take();
         }
 
-        parent.left = Some(node2);
-
-        Some(root1)
+        meld_one(parent, node2);
+        Some(new_root)
     }
 }
 
@@ -195,11 +205,11 @@ mod tests {
     use alloc::vec::Vec;
     use core::cmp::Reverse;
 
-    use crate::SkewHeap;
+    use crate::LeftistHeap;
 
     #[test]
     fn basic_test() {
-        let mut heap = SkewHeap::new();
+        let mut heap = LeftistHeap::new();
         for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
             heap.push(x);
         }
@@ -214,7 +224,7 @@ mod tests {
 
     #[test]
     fn drop_test() {
-        let mut heap = SkewHeap::new();
+        let mut heap = LeftistHeap::new();
         for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
             heap.push(x);
         }
@@ -224,7 +234,7 @@ mod tests {
     #[test]
     fn large_drop_test() {
         let n = 1000000;
-        let mut heap = SkewHeap::new();
+        let mut heap = LeftistHeap::new();
         for i in 0..n {
             heap.push(n - i);
         }
@@ -233,7 +243,7 @@ mod tests {
 
     #[test]
     fn iter_test() {
-        let mut heap = SkewHeap::new();
+        let mut heap = LeftistHeap::new();
         for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
             heap.push(x);
         }
@@ -246,7 +256,7 @@ mod tests {
     #[test]
     fn randomized_test() {
         for _ in 0..1000 {
-            let mut heap = SkewHeap::new();
+            let mut heap = LeftistHeap::new();
             // BinaryHeap is max-heap. So, we need to push Reverse(x) to make it min-heap.
             let mut expected = BinaryHeap::new();
             for i in 0..100 {
