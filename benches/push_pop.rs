@@ -1,7 +1,7 @@
 use std::collections::BinaryHeap;
 
 use divan::Bencher;
-use meldable_heaps::{LeftistHeap, ParingHeap, SkewHeap};
+use meldable_heaps::{LeftistHeap, PairingHeap, SkewHeap};
 use mimalloc::MiMalloc;
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 
@@ -28,7 +28,7 @@ impl<T: Ord> Heap<T> for BinaryHeap<T> {
 }
 
 #[rustfmt::skip]
-impl<T: Ord> Heap<T> for ParingHeap<T> {
+impl<T: Ord> Heap<T> for PairingHeap<T> {
     fn new() -> Self { Self::new() }
     fn push(&mut self, value: T) { self.push(value) }
     fn pop(&mut self) -> Option<T> { self.pop() }
@@ -75,7 +75,7 @@ push_pop_bench                          │               │               │ 
 │  ├─ 6000000             3.149 s       │ 3.192 s       │ 3.184 s       │ 3.175 s       │ 3       │ 3
 │  ├─ 7000000             3.79 s        │ 3.945 s       │ 3.859 s       │ 3.865 s       │ 3       │ 3
 │  ╰─ 8000000             4.522 s       │ 4.562 s       │ 4.534 s       │ 4.539 s       │ 3       │ 3
-├─ ParingHeap<[u64; 5]>                 │               │               │               │         │
+├─ PairingHeap<[u64; 5]>                 │               │               │               │         │
 │  ├─ 1000000             330.6 ms      │ 340.6 ms      │ 336.6 ms      │ 335.9 ms      │ 3       │ 3
 │  ├─ 2000000             926.7 ms      │ 947.2 ms      │ 944.6 ms      │ 939.5 ms      │ 3       │ 3
 │  ├─ 3000000             1.627 s       │ 1.658 s       │ 1.628 s       │ 1.638 s       │ 3       │ 3
@@ -95,7 +95,7 @@ push_pop_bench                          │               │               │ 
    ╰─ 8000000             7.94 s        │ 8.305 s       │ 7.993 s       │ 8.079 s       │ 3       │ 3
 */
 #[divan::bench(
-    types = [BinaryHeap<Entry>, ParingHeap<Entry>, SkewHeap<Entry>, LeftistHeap<Entry>],
+    types = [BinaryHeap<Entry>, PairingHeap<Entry>, SkewHeap<Entry>, LeftistHeap<Entry>],
     args = [1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000],
     sample_count = 3,
 )]
@@ -136,7 +136,7 @@ random_push_pop_bench                   │               │               │ 
 │  ├─ 6000000             184.3 ms      │ 211.2 ms      │ 195.9 ms      │ 198.9 ms      │ 5       │ 5
 │  ├─ 7000000             227.4 ms      │ 251 ms        │ 242.7 ms      │ 239.4 ms      │ 5       │ 5
 │  ╰─ 8000000             256.4 ms      │ 289.9 ms      │ 273.2 ms      │ 273.5 ms      │ 5       │ 5
-├─ ParingHeap<[u64; 5]>                 │               │               │               │         │
+├─ PairingHeap<[u64; 5]>                 │               │               │               │         │
 │  ├─ 1000000             23.65 ms      │ 28.91 ms      │ 28.39 ms      │ 27.51 ms      │ 5       │ 5
 │  ├─ 2000000             47.12 ms      │ 56.89 ms      │ 52.25 ms      │ 52.54 ms      │ 5       │ 5
 │  ├─ 3000000             74.35 ms      │ 88.75 ms      │ 81.01 ms      │ 81.35 ms      │ 5       │ 5
@@ -156,7 +156,7 @@ random_push_pop_bench                   │               │               │ 
    ╰─ 8000000             266.6 ms      │ 307 ms        │ 291.1 ms      │ 288 ms        │ 5       │ 5
 */
 #[divan::bench(
-    types = [BinaryHeap<Entry>, ParingHeap<Entry>, SkewHeap<Entry>, LeftistHeap<Entry>],
+    types = [BinaryHeap<Entry>, PairingHeap<Entry>, SkewHeap<Entry>, LeftistHeap<Entry>],
     args = [1000000, 2000000, 3000000, 4000000, 5000000, 6000000, 7000000, 8000000],
     sample_count = 5,
 )]

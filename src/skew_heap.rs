@@ -5,6 +5,12 @@ use alloc::vec::Vec;
 
 /// `SkewHeap` is a priority queue implemented with skew heaps.
 /// `SkewHeap` is a **min-heap**, which means that the minimum element is popped first.
+///
+/// # Reference
+/// Sleator, Daniel Dominic; Tarjan, Robert Endre (1986).
+/// ["Self-Adjusting Heaps"][Sleator-Tarjan-1986]
+///
+/// [Sleator-Tarjan-1986]: https://www.cs.cmu.edu/~sleator/papers/Adjusting-Heaps.htm
 pub struct SkewHeap<T: Ord> {
     root: Option<Box<Node<T>>>,
 }

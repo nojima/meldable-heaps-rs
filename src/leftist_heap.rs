@@ -2,6 +2,14 @@ use core::cmp::min;
 
 use alloc::{boxed::Box, vec::Vec};
 
+/// `LeftistHeap` is a priority queue implemented with pairing heap.
+/// `LeftistHeap` is a **min-heap**, which means that the minimum element is popped first.
+///
+/// # Reference
+/// - Crane, Clark A. (1972).
+///   "Linear Lists and Priority Queues as Balanced Binary Trees"
+/// - D. E. Knuth. (1973).
+///   "The Art of Computer Programming, Volume 1: Fundamental Algorithms, 2nd ed."
 pub struct LeftistHeap<T: Ord> {
     root: Option<Box<Node<T>>>,
 }

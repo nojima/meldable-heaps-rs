@@ -2,11 +2,19 @@
 
 use alloc::{boxed::Box, vec::Vec};
 
-pub struct ParingHeap<T: Ord> {
+/// `PairingHeap` is a priority queue implemented with pairing heap.
+/// `PairingHeap` is a **min-heap**, which means that the minimum element is popped first.
+///
+/// # Reference
+/// Fredman, Michael L.; Sedgewick, Robert; Sleator, Daniel D.; Tarjan, Robert E. (1986).
+/// ["The pairing heap: a new form of self-adjusting heap"][Fredman-Sedgewick-Sleator-Tarjan-1986]
+///
+/// [Fredman-Sedgewick-Sleator-Tarjan-1986]: https://www.cs.cmu.edu/~sleator/papers/pairing-heaps.pdf
+pub struct PairingHeap<T: Ord> {
     root: Option<Box<Node<T>>>,
 }
 
-impl<T: Ord> ParingHeap<T> {
+impl<T: Ord> PairingHeap<T> {
     pub fn new() -> Self {
         Self { root: None }
     }
@@ -30,7 +38,7 @@ impl<T: Ord> ParingHeap<T> {
         self.root.as_ref().map(|node| &node.value)
     }
 
-    pub fn meld(mut heap1: ParingHeap<T>, mut heap2: ParingHeap<T>) -> ParingHeap<T> {
+    pub fn meld(mut heap1: PairingHeap<T>, mut heap2: PairingHeap<T>) -> PairingHeap<T> {
         let root = Node::meld(heap1.root.take(), heap2.root.take());
         Self { root }
     }
@@ -44,9 +52,9 @@ impl<T: Ord> ParingHeap<T> {
     }
 }
 
-// We need to implement `drop` for ParingHeap because auto-generated `drop` would cause stack overflow
+// We need to implement `drop` for PairingHeap because auto-generated `drop` would cause stack overflow
 // (the depth of the tree can be O(n) in the worst case).
-impl<T: Ord> Drop for ParingHeap<T> {
+impl<T: Ord> Drop for PairingHeap<T> {
     // Visit all nodes in depth-first order, and drop them one-by-one.
     //
     // This implementation reuses heap nodes to create a stack structure.
@@ -180,11 +188,11 @@ mod tests {
     use alloc::vec::Vec;
     use core::cmp::Reverse;
 
-    use crate::ParingHeap;
+    use crate::PairingHeap;
 
     #[test]
     fn basic_test() {
-        let mut heap = ParingHeap::new();
+        let mut heap = PairingHeap::new();
         for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
             heap.push(x);
         }
@@ -199,7 +207,7 @@ mod tests {
 
     #[test]
     fn drop_test() {
-        let mut heap = ParingHeap::new();
+        let mut heap = PairingHeap::new();
         for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
             heap.push(x);
         }
@@ -209,7 +217,7 @@ mod tests {
     #[test]
     fn large_drop_test() {
         let n = 1000000;
-        let mut heap = ParingHeap::new();
+        let mut heap = PairingHeap::new();
         for i in 0..n {
             heap.push(i);
         }
@@ -218,7 +226,7 @@ mod tests {
 
     #[test]
     fn iter_test() {
-        let mut heap = ParingHeap::new();
+        let mut heap = PairingHeap::new();
         for x in [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9] {
             heap.push(x);
         }
@@ -231,7 +239,7 @@ mod tests {
     #[test]
     fn randomized_test() {
         for _ in 0..1000 {
-            let mut heap = ParingHeap::new();
+            let mut heap = PairingHeap::new();
             // BinaryHeap is max-heap. So, we need to push Reverse(x) to make it min-heap.
             let mut expected = BinaryHeap::new();
             for i in 0..100 {

@@ -7,5 +7,5 @@ pub use skew_heap::*;
 mod leftist_heap;
 pub use leftist_heap::*;
 
-mod paring_heap;
-pub use paring_heap::*;
+mod pairing_heap;
+pub use pairing_heap::*;

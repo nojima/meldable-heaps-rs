@@ -13,4 +13,4 @@ A meldable heap implementation in Rust.
 
 ## Allocator
 
-SkewHeap performs a lot of memory allocations. Therefore, the allocator has a significant impact on  the performance. According to our benchmarks, [mimalloc](https://docs.rs/mimalloc/latest/mimalloc/) greatly improves the speed of SkewHeap. Therefore, we recommend using this crate with mimalloc.
+Node-based heaps perform a lot of memory allocations. Therefore, the allocator has a significant impact on  the performance. According to our benchmarks, [mimalloc](https://docs.rs/mimalloc/latest/mimalloc/) greatly improves the speed of meldable heaps. Therefore, we recommend using this crate with mimalloc.
